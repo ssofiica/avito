@@ -16,9 +16,11 @@ import (
 	"github.com/gorilla/mux"
 	"github.com/jackc/pgx/v5/pgxpool"
 	"github.com/joho/godotenv"
+	"go.uber.org/zap"
 )
 
 func main() {
+	logger := zap.Must(zap.NewProduction())
 	if err := godotenv.Load("cmd/main.env"); err != nil {
 		log.Fatal("No .env file found")
 	}
@@ -33,10 +35,10 @@ func main() {
 	userRepo := repositories.NewUserRepo(db)
 	tenderRepo := repositories.NewTenderRepo(db)
 	tenderService := services.NewTenderService(tenderRepo, userRepo)
-	tender := delivery.NewTenderHandler(tenderService)
+	tender := delivery.NewTenderHandler(tenderService, logger)
 	bidRepo := repositories.NewBidRepo(db)
 	bidService := services.NewBidService(bidRepo, userRepo, tenderRepo)
-	bid := delivery.NewBidHandler(bidService)
+	bid := delivery.NewBidHandler(bidService, logger)
 
 	r := mux.NewRouter().PathPrefix("/api").Subrouter()
 	r.HandleFunc("/ping", func(w http.ResponseWriter, _ *http.Request) {
@@ -64,7 +66,7 @@ func main() {
 	}
 
 	go func() {
-		if err := srv.ListenAndServe(); err != nil && err != http.ErrServerClosed {
+		if err := srv.ListenAndServe(); err != nil {
 			log.Fatalf("listen: %s\\n", err)
 		}
 	}()

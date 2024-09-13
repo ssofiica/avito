@@ -10,15 +10,18 @@ import (
 	"zadanie-6105/internal/services"
 
 	"github.com/gorilla/mux"
+	"go.uber.org/zap"
 )
 
 type BidHandler struct {
 	service services.Bid
+	logger  *zap.Logger
 }
 
-func NewBidHandler(service services.Bid) *BidHandler {
+func NewBidHandler(service services.Bid, logger *zap.Logger) *BidHandler {
 	return &BidHandler{
 		service: service,
+		logger:  logger,
 	}
 }
 
@@ -28,6 +31,7 @@ func (h *BidHandler) GetUserBids(w http.ResponseWriter, r *http.Request) {
 	filterParams := operation.BidParams{}
 	err := filterParams.Scan(params.Get("limit"), params.Get("offset"))
 	if err != nil {
+		h.logger.Error(err.Error())
 		operation.BadRequest(w)
 		return
 	}
@@ -38,11 +42,13 @@ func (h *BidHandler) GetUserBids(w http.ResponseWriter, r *http.Request) {
 	}
 	bids, err := h.service.GetUserBids(r.Context(), filterParams, creator)
 	if err != nil {
+		h.logger.Error(err.Error())
 		operation.InternalServerError(w)
 		return
 	}
 	response, err := json.Marshal(bids)
 	if err != nil {
+		h.logger.Error(err.Error())
 		operation.InternalServerError(w)
 		return
 	}
@@ -61,6 +67,7 @@ func (h *BidHandler) GetBidsForTender(w http.ResponseWriter, r *http.Request) {
 	}
 	err := filterParams.Scan(params.Get("limit"), params.Get("offset"))
 	if err != nil {
+		h.logger.Error(err.Error())
 		operation.BadRequest(w)
 		return
 	}
@@ -71,11 +78,13 @@ func (h *BidHandler) GetBidsForTender(w http.ResponseWriter, r *http.Request) {
 	}
 	bids, err := h.service.GetBidsForTender(r.Context(), id, filterParams)
 	if err != nil {
+		h.logger.Error(err.Error())
 		operation.InternalServerError(w)
 		return
 	}
 	response, err := json.Marshal(bids)
 	if err != nil {
+		h.logger.Error(err.Error())
 		operation.InternalServerError(w)
 		return
 	}
@@ -86,6 +95,7 @@ func (h *BidHandler) CreateBid(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 	body, err := io.ReadAll(r.Body)
 	if err != nil {
+		h.logger.Error(err.Error())
 		operation.BadRequest(w)
 		return
 	}
@@ -94,16 +104,19 @@ func (h *BidHandler) CreateBid(w http.ResponseWriter, r *http.Request) {
 	b := entities.Bid{}
 	err = json.Unmarshal(body, &b)
 	if err != nil {
+		h.logger.Error(err.Error())
 		operation.BadRequest(w)
 		return
 	}
 	bid, err := h.service.CreateBid(r.Context(), b)
 	if err != nil {
+		h.logger.Error(err.Error())
 		operation.InternalServerError(w)
 		return
 	}
 	response, err := json.Marshal(bid)
 	if err != nil {
+		h.logger.Error(err.Error())
 		operation.InternalServerError(w)
 		return
 	}
@@ -126,11 +139,13 @@ func (h *BidHandler) GetBidStatus(w http.ResponseWriter, r *http.Request) {
 	}
 	status, err := h.service.GetBidStatus(r.Context(), id)
 	if err != nil {
+		h.logger.Error(err.Error())
 		operation.InternalServerError(w)
 		return
 	}
 	response, err := json.Marshal(status)
 	if err != nil {
+		h.logger.Error(err.Error())
 		operation.InternalServerError(w)
 		return
 	}
@@ -160,11 +175,13 @@ func (h *BidHandler) ChangeBidStatus(w http.ResponseWriter, r *http.Request) {
 	}
 	bid, err := h.service.ChangeBidStatus(r.Context(), status, id)
 	if err != nil {
+		h.logger.Error(err.Error())
 		operation.InternalServerError(w)
 		return
 	}
 	response, err := json.Marshal(bid)
 	if err != nil {
+		h.logger.Error(err.Error())
 		operation.InternalServerError(w)
 		return
 	}
@@ -194,6 +211,7 @@ func (h *BidHandler) SubmitBid(w http.ResponseWriter, r *http.Request) {
 	}
 	bid, err := h.service.SubmitBid(r.Context(), status, id, creator)
 	if err != nil {
+		h.logger.Error(err.Error())
 		if errors.Is(err, services.ErrNoAccess) || errors.Is(err, services.ErrNotResponsible) {
 			operation.Forbidden(w)
 			return
@@ -203,6 +221,7 @@ func (h *BidHandler) SubmitBid(w http.ResponseWriter, r *http.Request) {
 	}
 	response, err := json.Marshal(bid)
 	if err != nil {
+		h.logger.Error(err.Error())
 		operation.InternalServerError(w)
 		return
 	}
@@ -225,6 +244,7 @@ func (h *BidHandler) EditBid(w http.ResponseWriter, r *http.Request) {
 	}
 	body, err := io.ReadAll(r.Body)
 	if err != nil {
+		h.logger.Error(err.Error())
 		operation.BadRequest(w)
 		return
 	}
@@ -233,16 +253,19 @@ func (h *BidHandler) EditBid(w http.ResponseWriter, r *http.Request) {
 	t := entities.Bid{}
 	err = json.Unmarshal(body, &t)
 	if err != nil {
+		h.logger.Error(err.Error())
 		operation.BadRequest(w)
 		return
 	}
 	bid, err := h.service.EditBid(r.Context(), t, id)
 	if err != nil {
+		h.logger.Error(err.Error())
 		operation.InternalServerError(w)
 		return
 	}
 	response, err := json.Marshal(bid)
 	if err != nil {
+		h.logger.Error(err.Error())
 		operation.InternalServerError(w)
 		return
 	}

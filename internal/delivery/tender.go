@@ -3,7 +3,6 @@ package delivery
 import (
 	"encoding/json"
 	"errors"
-	"fmt"
 	"io"
 	"net/http"
 	"zadanie-6105/internal/delivery/operation"
@@ -11,15 +10,18 @@ import (
 	"zadanie-6105/internal/services"
 
 	"github.com/gorilla/mux"
+	"go.uber.org/zap"
 )
 
 type TenderHandler struct {
 	service services.Tender
+	logger  *zap.Logger
 }
 
-func NewTenderHandler(service services.Tender) *TenderHandler {
+func NewTenderHandler(service services.Tender, logger *zap.Logger) *TenderHandler {
 	return &TenderHandler{
 		service: service,
+		logger:  logger,
 	}
 }
 
@@ -29,17 +31,19 @@ func (h *TenderHandler) GetTenderList(w http.ResponseWriter, r *http.Request) {
 	filterParams := operation.TenderListParams{}
 	err := filterParams.Scan(params.Get("limit"), params.Get("offset"), params.Get("service_type"))
 	if err != nil {
+		h.logger.Error(err.Error())
 		operation.BadRequest(w)
 		return
 	}
 	tenders, err := h.service.GetTenderList(r.Context(), filterParams)
 	if err != nil {
-		fmt.Println(err)
+		h.logger.Error(err.Error())
 		operation.InternalServerError(w)
 		return
 	}
 	response, err := json.Marshal(tenders)
 	if err != nil {
+		h.logger.Error(err.Error())
 		operation.InternalServerError(w)
 		return
 	}
@@ -50,6 +54,7 @@ func (h *TenderHandler) CreateTender(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 	body, err := io.ReadAll(r.Body)
 	if err != nil {
+		h.logger.Error(err.Error())
 		operation.BadRequest(w)
 		return
 	}
@@ -58,16 +63,19 @@ func (h *TenderHandler) CreateTender(w http.ResponseWriter, r *http.Request) {
 	t := entities.Tender{}
 	err = json.Unmarshal(body, &t)
 	if err != nil {
+		h.logger.Error(err.Error())
 		operation.BadRequest(w)
 		return
 	}
 	tender, err := h.service.CreateTender(r.Context(), t)
 	if err != nil {
+		h.logger.Error(err.Error())
 		operation.InternalServerError(w)
 		return
 	}
 	response, err := json.Marshal(tender)
 	if err != nil {
+		h.logger.Error(err.Error())
 		operation.InternalServerError(w)
 		return
 	}
@@ -80,6 +88,7 @@ func (h *TenderHandler) GetTenderByUser(w http.ResponseWriter, r *http.Request) 
 	filterParams := operation.TenderListParams{}
 	err := filterParams.Scan(params.Get("limit"), params.Get("offset"), "")
 	if err != nil {
+		h.logger.Error(err.Error())
 		operation.BadRequest(w)
 		return
 	}
@@ -90,11 +99,13 @@ func (h *TenderHandler) GetTenderByUser(w http.ResponseWriter, r *http.Request) 
 	}
 	tenders, err := h.service.GetTenderByUser(r.Context(), creator, filterParams)
 	if err != nil {
+		h.logger.Error(err.Error())
 		operation.InternalServerError(w)
 		return
 	}
 	response, err := json.Marshal(tenders)
 	if err != nil {
+		h.logger.Error(err.Error())
 		operation.InternalServerError(w)
 		return
 	}
@@ -106,22 +117,26 @@ func (h *TenderHandler) GetTenderStatus(w http.ResponseWriter, r *http.Request) 
 	params := r.URL.Query()
 	creator := params.Get("username")
 	if creator == "" {
+		h.logger.Error("no username")
 		operation.Unauthorized(w)
 		return
 	}
 	vars := mux.Vars(r)
 	id := vars["tenderId"]
 	if id == "" {
+		h.logger.Error("no id")
 		operation.BadRequest(w)
 		return
 	}
 	status, err := h.service.GetTenderStatus(r.Context(), id, creator)
 	if err != nil {
+		h.logger.Error(err.Error())
 		operation.InternalServerError(w)
 		return
 	}
 	response, err := json.Marshal(status)
 	if err != nil {
+		h.logger.Error(err.Error())
 		operation.InternalServerError(w)
 		return
 	}
@@ -151,6 +166,7 @@ func (h *TenderHandler) ChangeTenderStatus(w http.ResponseWriter, r *http.Reques
 	}
 	tender, err := h.service.ChangeTenderStatus(r.Context(), status, id, creator)
 	if err != nil {
+		h.logger.Error(err.Error())
 		if errors.Is(services.ErrNotResponsible, err) || errors.Is(services.ErrNoAccess, err) {
 			operation.WriteResponse(w, 403, []byte(`{"reason": "`+err.Error()+`"}`))
 			return
@@ -160,6 +176,7 @@ func (h *TenderHandler) ChangeTenderStatus(w http.ResponseWriter, r *http.Reques
 	}
 	response, err := json.Marshal(tender)
 	if err != nil {
+		h.logger.Error(err.Error())
 		operation.InternalServerError(w)
 		return
 	}
@@ -182,6 +199,7 @@ func (h *TenderHandler) EditTender(w http.ResponseWriter, r *http.Request) {
 	}
 	body, err := io.ReadAll(r.Body)
 	if err != nil {
+		h.logger.Error(err.Error())
 		operation.BadRequest(w)
 		return
 	}
@@ -190,16 +208,19 @@ func (h *TenderHandler) EditTender(w http.ResponseWriter, r *http.Request) {
 	t := entities.Tender{}
 	err = json.Unmarshal(body, &t)
 	if err != nil {
+		h.logger.Error(err.Error())
 		operation.BadRequest(w)
 		return
 	}
 	tender, err := h.service.EditTender(r.Context(), t, id, creator)
 	if err != nil {
+		h.logger.Error(err.Error())
 		operation.InternalServerError(w)
 		return
 	}
 	response, err := json.Marshal(tender)
 	if err != nil {
+		h.logger.Error(err.Error())
 		operation.InternalServerError(w)
 		return
 	}
