@@ -1,15 +1,7 @@
-FROM gradle:4.7.0-jdk8-alpine AS build
-COPY --chown=gradle:gradle . /home/gradle/src
-WORKDIR /home/gradle/src
-RUN gradle build --no-daemon 
-
-FROM openjdk:8-jre-slim
-
-EXPOSE 8080
-
-RUN mkdir /app
-
-COPY --from=build /home/gradle/src/build/libs/*.jar /app/spring-boot-application.jar
-
-ENTRYPOINT ["java", "-XX:+UnlockExperimentalVMOptions", "-XX:+UseCGroupMemoryLimitForHeap", "-Djava.security.egd=file:/dev/./urandom","-jar","/app/spring-boot-application.jar"]
-
+FROM golang:1.22-alpine AS builder
+RUN apk add --update make git curl
+ARG MODULE_NAME=avito
+COPY . /home/${MODULE_NAME}/
+WORKDIR /home/${MODULE_NAME}/
+RUN go build -o super_tender cmd/main/main.go
+CMD ["./super_tender"]
