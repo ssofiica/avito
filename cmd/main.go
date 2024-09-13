@@ -15,18 +15,29 @@ import (
 
 	"github.com/gorilla/mux"
 	"github.com/jackc/pgx/v5/pgxpool"
+	"github.com/joho/godotenv"
 )
 
 func main() {
-	db, err := pgxpool.New(context.Background(), "postgres://svalova:mydbpass@localhost:5432/test-gaz?sslmode=disable")
+	if err := godotenv.Load("cmd/main.env"); err != nil {
+		log.Fatal("No .env file found")
+	}
+	SERVER_ADDRESS := os.Getenv("SERVER_ADDRESS")
+	POSTGRES_CONN := os.Getenv("POSTGRES_CONN")
+
+	db, err := pgxpool.New(context.Background(), POSTGRES_CONN)
 	if err != nil {
 		fmt.Println("error wih db", err)
 	}
-	fmt.Println("ok")
 
+	userRepo := repositories.NewUserRepo(db)
 	tenderRepo := repositories.NewTenderRepo(db)
-	tenderService := services.NewTenderService(tenderRepo)
+	tenderService := services.NewTenderService(tenderRepo, userRepo)
 	tender := delivery.NewTenderHandler(tenderService)
+	bidRepo := repositories.NewBidRepo(db)
+	bidService := services.NewBidService(bidRepo, userRepo, tenderRepo)
+	bid := delivery.NewBidHandler(bidService)
+
 	r := mux.NewRouter().PathPrefix("/api").Subrouter()
 	r.HandleFunc("/ping", func(w http.ResponseWriter, _ *http.Request) {
 		w.WriteHeader(http.StatusOK)
@@ -34,12 +45,21 @@ func main() {
 	})
 
 	r.HandleFunc("/tenders", tender.GetTenderList).Methods("GET")
-	r.HandleFunc("/tenders/new", nil).Methods("POST")
-	r.HandleFunc("/tenders/my", nil).Methods("GET")
-	r.HandleFunc("/tenders/{tenderId}/edit", nil).Methods("PATCH")
+	r.HandleFunc("/tenders/new", tender.CreateTender).Methods("POST")
+	r.HandleFunc("/tenders/my", tender.GetTenderByUser).Methods("GET")
+	r.HandleFunc("/tenders/{tenderId}/status", tender.GetTenderStatus).Methods("GET")
+	r.HandleFunc("/tenders/{tenderId}/status", tender.ChangeTenderStatus).Methods("PUT")
+	r.HandleFunc("/tenders/{tenderId}/edit", tender.EditTender).Methods("PATCH")
+	r.HandleFunc("/bids/new", bid.CreateBid).Methods("POST")
+	r.HandleFunc("/bids/my", bid.GetUserBids).Methods("GET")
+	r.HandleFunc("/bids/{tenderId}/my", bid.GetBidsForTender).Methods("GET")
+	r.HandleFunc("/bids/{bidId}/status", bid.GetBidStatus).Methods("GET")
+	r.HandleFunc("/bids/{bidId}/status", bid.ChangeBidStatus).Methods("PUT")
+	r.HandleFunc("/bids/{bidId}/submit_decision", bid.SubmitBid).Methods("PUT")
+	r.HandleFunc("/bids/{bidId}/edit", bid.EditBid).Methods("PATCH")
 
 	srv := &http.Server{
-		Addr:    ":8080",
+		Addr:    SERVER_ADDRESS,
 		Handler: r,
 	}
 
