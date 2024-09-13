@@ -38,13 +38,13 @@ func (h *TenderHandler) GetTenderList(w http.ResponseWriter, r *http.Request) {
 	tenders, err := h.service.GetTenderList(r.Context(), filterParams)
 	if err != nil {
 		h.logger.Error(err.Error())
-		operation.InternalServerError(w)
+		operation.WriteResponse(w, 500, []byte(err.Error()))
 		return
 	}
 	response, err := json.Marshal(tenders)
 	if err != nil {
 		h.logger.Error(err.Error())
-		operation.WriteResponse(w, 500, []byte(err.Error()))
+		operation.InternalServerError(w)
 		return
 	}
 	w.Write(response)
