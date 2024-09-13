@@ -3,6 +3,7 @@ package delivery
 import (
 	"encoding/json"
 	"errors"
+	"fmt"
 	"io"
 	"net/http"
 	"zadanie-6105/internal/delivery/operation"
@@ -23,6 +24,7 @@ func NewTenderHandler(service services.Tender) *TenderHandler {
 }
 
 func (h *TenderHandler) GetTenderList(w http.ResponseWriter, r *http.Request) {
+	w.Header().Set("Content-Type", "application/json")
 	params := r.URL.Query()
 	filterParams := operation.TenderListParams{}
 	err := filterParams.Scan(params.Get("limit"), params.Get("offset"), params.Get("service_type"))
@@ -32,6 +34,7 @@ func (h *TenderHandler) GetTenderList(w http.ResponseWriter, r *http.Request) {
 	}
 	tenders, err := h.service.GetTenderList(r.Context(), filterParams)
 	if err != nil {
+		fmt.Println(err)
 		operation.InternalServerError(w)
 		return
 	}
@@ -44,6 +47,7 @@ func (h *TenderHandler) GetTenderList(w http.ResponseWriter, r *http.Request) {
 }
 
 func (h *TenderHandler) CreateTender(w http.ResponseWriter, r *http.Request) {
+	w.Header().Set("Content-Type", "application/json")
 	body, err := io.ReadAll(r.Body)
 	if err != nil {
 		operation.BadRequest(w)
@@ -71,6 +75,7 @@ func (h *TenderHandler) CreateTender(w http.ResponseWriter, r *http.Request) {
 }
 
 func (h *TenderHandler) GetTenderByUser(w http.ResponseWriter, r *http.Request) {
+	w.Header().Set("Content-Type", "application/json")
 	params := r.URL.Query()
 	filterParams := operation.TenderListParams{}
 	err := filterParams.Scan(params.Get("limit"), params.Get("offset"), "")
@@ -97,6 +102,7 @@ func (h *TenderHandler) GetTenderByUser(w http.ResponseWriter, r *http.Request) 
 }
 
 func (h *TenderHandler) GetTenderStatus(w http.ResponseWriter, r *http.Request) {
+	w.Header().Set("Content-Type", "application/json")
 	params := r.URL.Query()
 	creator := params.Get("username")
 	if creator == "" {
@@ -123,6 +129,7 @@ func (h *TenderHandler) GetTenderStatus(w http.ResponseWriter, r *http.Request) 
 }
 
 func (h *TenderHandler) ChangeTenderStatus(w http.ResponseWriter, r *http.Request) {
+	w.Header().Set("Content-Type", "application/json")
 	params := r.URL.Query()
 	creator := params.Get("username")
 	str := params.Get("status")
@@ -160,6 +167,7 @@ func (h *TenderHandler) ChangeTenderStatus(w http.ResponseWriter, r *http.Reques
 }
 
 func (h *TenderHandler) EditTender(w http.ResponseWriter, r *http.Request) {
+	w.Header().Set("Content-Type", "application/json")
 	params := r.URL.Query()
 	creator := params.Get("username")
 	if creator == "" {

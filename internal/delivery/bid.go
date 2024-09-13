@@ -23,6 +23,7 @@ func NewBidHandler(service services.Bid) *BidHandler {
 }
 
 func (h *BidHandler) GetUserBids(w http.ResponseWriter, r *http.Request) {
+	w.Header().Set("Content-Type", "application/json")
 	params := r.URL.Query()
 	filterParams := operation.BidParams{}
 	err := filterParams.Scan(params.Get("limit"), params.Get("offset"))
@@ -49,6 +50,7 @@ func (h *BidHandler) GetUserBids(w http.ResponseWriter, r *http.Request) {
 }
 
 func (h *BidHandler) GetBidsForTender(w http.ResponseWriter, r *http.Request) {
+	w.Header().Set("Content-Type", "application/json")
 	params := r.URL.Query()
 	filterParams := operation.BidParams{}
 	vars := mux.Vars(r)
@@ -81,6 +83,7 @@ func (h *BidHandler) GetBidsForTender(w http.ResponseWriter, r *http.Request) {
 }
 
 func (h *BidHandler) CreateBid(w http.ResponseWriter, r *http.Request) {
+	w.Header().Set("Content-Type", "application/json")
 	body, err := io.ReadAll(r.Body)
 	if err != nil {
 		operation.BadRequest(w)
@@ -108,6 +111,7 @@ func (h *BidHandler) CreateBid(w http.ResponseWriter, r *http.Request) {
 }
 
 func (h *BidHandler) GetBidStatus(w http.ResponseWriter, r *http.Request) {
+	w.Header().Set("Content-Type", "application/json")
 	params := r.URL.Query()
 	creator := params.Get("username")
 	if creator == "" {
@@ -134,6 +138,7 @@ func (h *BidHandler) GetBidStatus(w http.ResponseWriter, r *http.Request) {
 }
 
 func (h *BidHandler) ChangeBidStatus(w http.ResponseWriter, r *http.Request) {
+	w.Header().Set("Content-Type", "application/json")
 	params := r.URL.Query()
 	creator := params.Get("username")
 	if creator == "" {
@@ -167,6 +172,7 @@ func (h *BidHandler) ChangeBidStatus(w http.ResponseWriter, r *http.Request) {
 }
 
 func (h *BidHandler) SubmitBid(w http.ResponseWriter, r *http.Request) {
+	w.Header().Set("Content-Type", "application/json")
 	params := r.URL.Query()
 	creator := params.Get("username")
 	if creator == "" {
@@ -204,6 +210,7 @@ func (h *BidHandler) SubmitBid(w http.ResponseWriter, r *http.Request) {
 }
 
 func (h *BidHandler) EditBid(w http.ResponseWriter, r *http.Request) {
+	w.Header().Set("Content-Type", "application/json")
 	params := r.URL.Query()
 	creator := params.Get("username")
 	if creator == "" {
