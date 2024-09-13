@@ -13,7 +13,7 @@ import (
 type Bid interface {
 	Create(ctx context.Context, bid entities.Bid) (entities.Bid, error)
 	GetByTender(ctx context.Context, tender_id string, params operation.BidParams) (entities.BidList, error)
-	GetUserBids(ctx context.Context, params operation.BidParams, id int) (entities.BidList, error)
+	GetUserBids(ctx context.Context, params operation.BidParams, id string) (entities.BidList, error)
 	GetBidStatus(ctx context.Context, id string) (entities.BidStatus, error)
 	ChangeBidStatus(ctx context.Context, status entities.BidStatus, id string) (entities.Bid, error)
 	EditBid(ctx context.Context, bid entities.Bid, id string) (entities.Bid, error)
@@ -89,13 +89,13 @@ func (t *BidRepo) GetByTender(ctx context.Context, tender_id string, params oper
 	return res, nil
 }
 
-func (t *BidRepo) GetUserBids(ctx context.Context, params operation.BidParams, id int) (entities.BidList, error) {
+func (t *BidRepo) GetUserBids(ctx context.Context, params operation.BidParams, id string) (entities.BidList, error) {
 	var (
 		res entities.BidList
 		sb  strings.Builder
 	)
 	sb.WriteString(
-		`select id, name, status, authorType, author_id, version, created_at
+		`select id, name, status, author_type, author_id, version, created_at
 		from bid where author_id=@id order by name ASC`)
 	queryFilters, args := t.inQuery(params)
 	sb.WriteString(queryFilters)

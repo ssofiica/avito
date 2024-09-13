@@ -9,7 +9,7 @@ import (
 )
 
 type User interface {
-	GetUserIDByUsername(ctx context.Context, name string) (int, error)
+	GetUserIDByUsername(ctx context.Context, name string) (string, error)
 	IsResponsible(ctx context.Context, name string) (string, error)
 }
 
@@ -21,12 +21,12 @@ func NewUserRepo(db *pgxpool.Pool) User {
 	return &UserRepo{db: db}
 }
 
-func (t *UserRepo) GetUserIDByUsername(ctx context.Context, name string) (int, error) {
+func (t *UserRepo) GetUserIDByUsername(ctx context.Context, name string) (string, error) {
 	query := `select id from employee where username=$1`
-	var id int
+	var id string
 	err := t.db.QueryRow(ctx, query, name).Scan(&id)
 	if err != nil {
-		return 0, err
+		return "", err
 	}
 	return id, nil
 }
