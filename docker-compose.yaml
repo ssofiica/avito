@@ -1,15 +1,6 @@
 version: '3.9'
 
 services:
-  tender-service:
-    build:
-      context: .
-      dockerfile: ./Dockerfile
-    ports:
-       - "8080:8080"
-    depends_on:
-       - postgres
-    restart: always
   postgres:
     image: postgres:16.3
     restart: always

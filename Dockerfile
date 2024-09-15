@@ -1,7 +1,7 @@
-FROM golang:1.22-alpine AS builder
-RUN apk add --update make git curl
-ARG MODULE_NAME=avito
-COPY . /home/${MODULE_NAME}/
-WORKDIR /home/${MODULE_NAME}/
-RUN go build -o super_tender cmd/main.go
-CMD ["./super_tender"]
+FROM golang:1.22
+WORKDIR /app
+COPY go.* .
+RUN go mod download
+COPY . .
+RUN go build -o tender_service ./cmd/main.go
+CMD ["./tender_service"]

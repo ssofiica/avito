@@ -9,8 +9,6 @@ CREATE TABLE IF NOT EXISTS employee (
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
---insert into employee (username) values ('ssofiica'), ('mary');
-
 CREATE TYPE organization_type AS ENUM (
     'IE',
     'LLC',
@@ -25,8 +23,6 @@ CREATE TABLE IF NOT EXISTS organization (
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
-
---insert into organization (name, description, type) values ('logistic', 'fast and curious', 'IE'), ('pizzeria', 'very delicious pizza', 'JSC');
 
 CREATE TABLE IF NOT EXISTS organization_responsible (
     id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
@@ -59,3 +55,7 @@ CREATE TABLE IF NOT EXISTS bid (
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
+
+insert into employee (id, username, first_name, last_name) values ('1c2bb1bd-4d36-4d1d-8b3d-e85a603c0f83', 'ssofiica', 'София', 'Валова');
+insert into organization (id, name, type) values ('90c058c5-e03a-4d4e-9817-9f0d3eb7e1cd','Пиццерия', 'IE');
+insert into organization_responsible (organization_id, user_id) values ('90c058c5-e03a-4d4e-9817-9f0d3eb7e1cd', '1c2bb1bd-4d36-4d1d-8b3d-e85a603c0f83');
